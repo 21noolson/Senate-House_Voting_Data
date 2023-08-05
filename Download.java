@@ -61,6 +61,7 @@ public class Download {
     }
     catch (IOException ie) {
       // Print info about exception
+      ie.printStackTrace();
       System.out.println("IOException raised:\t" + webPage);
       System.out.println("Trying again in 15 seconds");
       
@@ -73,7 +74,7 @@ public class Download {
       }
       
       // Try to grab data again if less then four attempts have been tried
-      if(attempts < 4) { DownloadWebPage(webPage, fileName, attempts++); }
+      if(attempts < 4) { DownloadWebPage(webPage, fileName, (attempts+1)); }
       else {
         System.out.println("Failed to get data from " + webPage);
         throw ie;
@@ -158,7 +159,8 @@ public class Download {
     // Loops through all current Congressional session which are on the senates website
     for(int congress=101; congress<=118; congress++) {
       for(int session=1; session<=2; session++) {
-        if(congress != 118 && session != 2) { grabSessionData(congress, session, saxParser, handler); }
+        if(!(congress == 118 && session == 2)) { grabSessionData(congress, 
+        		session, saxParser, handler); }
       }
     }
   }
