@@ -9,7 +9,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 public class DataConversion {
-  static final String FileLocation = "D:\\Senate and House Data and processing\\"; 
+  static final String FileLocation = "D:\\Senate and House Data and processing\\Senate Data"; 
   static final String comma = ", ";
   static ArrayList<CongressPerson> congressPeople = new ArrayList<CongressPerson>();
   
@@ -102,12 +102,12 @@ public class DataConversion {
   }
     
 	public static void main(String[] args) {
-	  int q=1;
-	  
-	   // Creates the Files where we will store information and Writers 
+	  // Creates the Files where we will store information and Writers 
     File actionFile = new File("All_Actions.csv");
     File memberFile = new File("All_Members.csv");
     try {
+      actionFile.delete();
+      memberFile.delete();
       actionFile.createNewFile();
       memberFile.createNewFile();
     } 
@@ -128,8 +128,8 @@ public class DataConversion {
 		File[] allFiles = getFiles(FileLocation);		
 		for(File file: allFiles) {
 		  if(!file.getName().equals("tempFile.xml")) {
+		    System.out.println(file);
 		    try {
-		      System.out.println(file);
 		      addData(actionWriter, file);
 		    }
 		    catch(IOException e) {

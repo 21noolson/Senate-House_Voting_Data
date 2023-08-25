@@ -1,5 +1,3 @@
-import java.util.concurrent.TimeUnit;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -36,7 +34,6 @@ public class voteHandler extends DefaultHandler {
    */
   public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
     currentTag = qName;
-    //System.out.println(qName);
   }
   
   public void characters(char[] ch, int start, int length) {
@@ -45,57 +42,53 @@ public class voteHandler extends DefaultHandler {
     for(int i=start; i<start+length; i++) {
       data = data + ch[i];
     }
+    // Returns if characters was mistakenly called
+    if(data.isBlank()) { return; }
+    
     switch(currentTag) {
       case "congress": this.congress = Integer.valueOf(data);
-        return;
+        break;
       case "session": this.session = Integer.valueOf(data);
-        return;
+        break;
       case "congress_year": 
         this.year = Integer.valueOf(data);
-        this.congressSession = this.session+"-";
-        this.congressSession = this.congressSession + this.congress;
+        this.congressSession = this.session + "-" + this.congress;
         //System.out.println(this.congressSession + "\tat count");
-        return;
-      case "vote_number": this.voteNumber = Integer.valueOf(data);
+        break;
+      case "vote_number":  this.voteNumber = Integer.valueOf(data);
+        break;
       case "vote_date": this.date = data;
-        return;
+        break;
       case "vote_question_text": this.voteQuestion = data;
-        return;
+        break;
       case "yeas": this.yayVotes = Integer.valueOf(data);
-        return;
+        break;
       case "nays": this.nayVotes = Integer.valueOf(data);
-        return;
+        break;
       case "member": 
         this.firstName = null;
         this.lastName = null;
         this.memberID = null;
-        return;
+        break;
       case "last_name": this.lastName = data;
-        return;
+        break;
       case "first_name": this.firstName = data;
-        return;
+        break;
       case "party": this.party = data.charAt(0);
-        return;
+        break;
       case "state": this.state = data;
-        return;
+        break;
       case "vote_cast":
         if(data.equals("Yea")) { votes[votesCounted] = true; }
         else if(data.equals("Nay")) { votes[votesCounted] = false; }
-        return;
+        break;
       case "lis_member_id": this.memberID = data;
-        return;
-        
+        break;  
     }
   }
   
   public void endElement(String uri, String localName, String qName) {
     if(qName.equals("member")) {
-      System.out.println(this.memberID);
-      System.out.println(this.firstName);
-      System.out.println(this.lastName);
-      System.out.println(this.congressSession);
-      System.out.println(this.party);
-      System.out.println(this.state);
       CongressPerson member = new CongressPerson(this.memberID, this.firstName, this.lastName,
           this.congressSession, this.party, this.state);
       this.voters[votesCounted] = member;

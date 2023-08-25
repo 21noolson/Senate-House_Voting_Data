@@ -5,12 +5,9 @@ import java.net.URL;
 import java.util.concurrent.TimeUnit;
 import java.net.MalformedURLException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;  
 import javax.xml.parsers.SAXParserFactory;  
-import org.xml.sax.Attributes;  
-import org.xml.sax.SAXException;  
-import org.xml.sax.helpers.DefaultHandler; 
+
 
 /** Class for downloading all senate voting files that currently exist
  * 
