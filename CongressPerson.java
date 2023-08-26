@@ -53,6 +53,8 @@ public class CongressPerson {
    */
   public CongressPerson(String memberID, String firstName, String lastName, 
       String[] congressSessions, Character[] parties, String[] states) {
+    
+    
     if(memberID == null || firstName == null || lastName == null || congressSessions == null
         || parties == null || states == null) {
       throw new IllegalArgumentException("Argument cann't be null");
