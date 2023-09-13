@@ -2,8 +2,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class countingHandler extends DefaultHandler {
-  int votes = 0; // Number of votes that have taken place
+public class CongressVoteMenuHandler extends DefaultHandler {
+  int votes; // Number of votes that have taken place
   
   /**
    * Sets votes to zero when a new file is being parsed 

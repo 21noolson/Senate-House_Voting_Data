@@ -1,30 +1,28 @@
 
-public class Actions {
+public class Action<T> {
   private final int yayVotes;   // Number of yay Votes
   private final int nayVotes;   // Number of nay Votes
   private final int absent;     // Number of members absent from vote
-  private final int congress;   // Congress voting on action
-  private final int session;    // Congress Session voting on action
   private final int year;
   private final String date;
   private final String voteQuestion;      // What is being voted on
-  private final CongressPerson[] voters;  // Congress people voting on this action
+  private final T[] voters;  // Congress people voting on this action
   private final Boolean[] votes;          // Votes by the list of Congress people.
-                // True for yay, False for nay, and Null for abstain and present
-
   
-  public Actions(int yayVotes, int nayVotes, int absent, int congress, int session,
-      int year, String date, String voteQuestion, CongressPerson[] voters, Boolean[] votes) {
+  public Action(int yayVotes, int nayVotes, int absent, int year, String date, String voteQuestion,
+      T[] voters, Boolean[] votes) {
     this.yayVotes = yayVotes;
     this.nayVotes = nayVotes;
     this.absent = absent;
-    this.congress = congress;
-    this.session = session;
     this.year = year;
     this.date = date;
     this.voteQuestion = voteQuestion;
     this.voters = voters;
     this.votes = votes;
+  }
+  
+  public String getCommitte() {
+    return "Override needed";
   }
   
   public int getYayVotes() {
@@ -39,14 +37,6 @@ public class Actions {
     return absent;
   }
 
-  public int getCongress() {
-    return congress;
-  }
-
-  public int getSession() {
-    return session;
-  }
-
   public int getYear() {
     return year;
   }
@@ -59,13 +49,11 @@ public class Actions {
     return voteQuestion;
   }
 
-  public CongressPerson[] getVoters() {
+  public T[] getVoters() {
     return voters;
   }
 
   public Boolean[] getVotes() {
     return votes;
   }
-
-  
 }

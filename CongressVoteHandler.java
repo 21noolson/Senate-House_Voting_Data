@@ -2,8 +2,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class voteHandler extends DefaultHandler {
-  private Actions action;
+public class CongressVoteHandler extends DefaultHandler {
+  private CongressAction action;
   String currentTag;
   
   String memberID; // Congress assigned Member ID
@@ -23,7 +23,7 @@ public class voteHandler extends DefaultHandler {
   String date;
   String voteQuestion;      // What is being voted on
   int votesCounted = 0;     // Number of votes recorded so far
-  CongressPerson[] voters = new CongressPerson[100];  // Congress people voting on this action
+  Member[] voters = new Member[100];  // Congress people voting on this action
   Boolean[] votes = new Boolean[100];          // Votes by the list of Congress people.
                                                // True for yay, False for nay, and Null for Not Voting
   
@@ -89,8 +89,8 @@ public class voteHandler extends DefaultHandler {
   
   public void endElement(String uri, String localName, String qName) {
     if(qName.equals("member")) {
-      CongressPerson member = new CongressPerson(this.memberID, this.firstName, this.lastName,
-          this.congressSession, this.party, this.state);
+      Member member = new Member(this.firstName, this.lastName);
+      member.addCongressSession(this.memberID, this.congressSession, this.party, this.state);
       this.voters[votesCounted] = member;
       this.votesCounted++;
     }
@@ -98,7 +98,7 @@ public class voteHandler extends DefaultHandler {
   
   public void endDocument() {
     if(votesCounted != 100) {
-      CongressPerson[] voters = new CongressPerson[votesCounted];
+      Member[] voters = new Member[votesCounted];
       Boolean[] votes = new Boolean[votesCounted];
       for(int i=0; i<votesCounted; i++) {
         voters[i] = this.voters[i];
@@ -107,11 +107,11 @@ public class voteHandler extends DefaultHandler {
       this.voters = voters;
       this.votes = votes;
     }
-    action = new Actions(this.yayVotes, this.nayVotes, this.absent, this.congress, this.session,
+    action = new CongressAction(this.yayVotes, this.nayVotes, this.absent, this.congress, this.session,
         this.year, this.date, this.voteQuestion, this.voters, this.votes);
   }
   
-  public Actions getAction() {
+  public CongressAction getAction() {
     return action;
   }
 }

@@ -10,13 +10,13 @@ public class Tester {
     // Declare the SAX factory, Parser and Handler for processing data
     SAXParserFactory factory = null;
     SAXParser saxParser = null;
-    voteHandler handler = null;
+    CongressVoteHandler handler = null;
     
     // Create SAX Parser and parse the given dataFile
     try {
       factory = SAXParserFactory.newInstance();
       saxParser = factory.newSAXParser();
-      handler = new voteHandler();
+      handler = new CongressVoteHandler();
       saxParser.parse(file, handler);
     }
     

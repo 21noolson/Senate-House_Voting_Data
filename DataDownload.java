@@ -13,9 +13,10 @@ import javax.xml.parsers.SAXParserFactory;
  * 
  * @author NoahOlson
  */
-public class Download {
+public class DataDownload {
   // Folder where you will store your data. Data is approximately 12,000 files and 300MB
-  static final String FileLocation = "D:\\Senate and House Data and processing\\"; 
+  static final String SenateFileLocation = "Senate_Voting_Data"; 
+  static final String HouseFileLocation = "House_Voting_Data";
   
   /**
    * Downloads the .xml file from the given web page and stores it in the given fileName in the FileLocation
@@ -25,14 +26,19 @@ public class Download {
    * @param fileName the name of the file after being downloaded
    * @throws IOException If an I/O error occurs 4 times in a row, this likely indicates failure to download data
    */
-  public static void DownloadWebPage(String webPage, String fileName) throws IOException {
-    DownloadWebPage(webPage, fileName, 0);
+  public static void DownloadWebPage(String webPage, String fileName, String type) throws IOException {
+    if(type.equals("Senate")) {
+      DownloadWebPage(webPage, fileName, 0, SenateFileLocation);
+    }
+    else if(type.equals("House")) {
+      DownloadWebPage(webPage, fileName, 0, HouseFileLocation);
+    }
   }
   
   /**
    * Helper class for DownloadWebPage
    */
-  private static void DownloadWebPage(String webPage, String fileName, int attempts) throws IOException {
+  private static void DownloadWebPage(String webPage, String fileName, int attempts, String fileLocation) throws IOException {
     // Declare reader and writer outside of try block so they can be closed in finally statement
     BufferedReader readr = null;
     BufferedWriter writer = null;
@@ -42,7 +48,7 @@ public class Download {
       
       // Initialize reader and writer
       readr = new BufferedReader(new InputStreamReader(url.openStream()));
-      writer = new BufferedWriter(new FileWriter(FileLocation+fileName+".xml"));
+      writer = new BufferedWriter(new FileWriter(fileLocation+fileName+".xml"));
       
       // read each line from stream till end
       String line;
@@ -71,7 +77,7 @@ public class Download {
       }
       
       // Try to grab data again if less then four attempts have been tried
-      if(attempts < 4) { DownloadWebPage(webPage, fileName, (attempts+1)); }
+      if(attempts < 4) { DownloadWebPage(webPage, fileName, (attempts+1), fileLocation); }
       else {
         System.out.println("Failed to get data from " + webPage);
         throw ie;
@@ -92,8 +98,8 @@ public class Download {
    * @param saxParser SAXParser to parse data with
    * @param handler handler for counting data
    */
-  public static void grabSessionData(int congress, int session, SAXParser saxParser, 
-      countingHandler handler) {
+  public static void grabCongressSessionData(int congress, int session, SAXParser saxParser, 
+      CongressVoteMenuHandler handler) {
     
     // Creates link to the senate menu page for the given congress and session
     String sessionsPage = "https://www.senate.gov/legislative/LIS/roll_call_lists/vote_menu_" 
@@ -104,14 +110,14 @@ public class Download {
     
     // Attempts to downloads the senate session page 
     try {
-      DownloadWebPage(sessionsPage, "tempData");
+      DownloadWebPage(sessionsPage, "tempData", "Senate");
     } 
     catch (IOException e1) {
       System.out.println("Failed to grab the session data for Congress:\t" + congress +
           "\tSession:\t" + session);
     }
     // Counts the number of votes conducted
-    File voteMenu = new File(FileLocation + "tempData.xml");
+    File voteMenu = new File(SenateFileLocation + "tempData.xml");
     try {
       saxParser.parse(voteMenu, handler);
     } catch (Exception e) {
@@ -130,21 +136,37 @@ public class Download {
       String currentVotePage = votePage + actionNumber + ".xml";
       String fileName = "Senate_" + congress + "_" + session + "_" + action;
       try {
-        DownloadWebPage(currentVotePage, fileName);
+        DownloadWebPage(currentVotePage, fileName, "Senate");
       } catch (IOException e) {}
     }
+  }
+  
+  /**
+   * 
+   * @param args
+   */
+  public static void grabHouseSessionData(int year, SAXParser saxParser, HouseVoteMenuHandler handler) {
+    String housePage = "https://clerk.house.gov/evs/" + year + "/roll";
+    try {
+      URL url = new URL(housePage);
+      url.
+    } catch (MalformedURLException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    
   }
   
   public static void main(String[] args) {
     // Declare the SAX factory, Parser and Handler for processing data
     SAXParserFactory factory = null;
     SAXParser saxParser = null;
-    countingHandler handler = null;
+    CongressVoteMenuHandler senateHandler = null;
     // Create SAX Parser to collect XML data
     try {
       factory = SAXParserFactory.newInstance();
       saxParser = factory.newSAXParser();
-      handler = new countingHandler();
+      senateHandler = new CongressVoteMenuHandler();
     }
     // Print Exception information if parser Fails initialization and returns
     catch(Exception e) {
@@ -156,9 +178,14 @@ public class Download {
     // Loops through all current Congressional session which are on the senates website
     for(int congress=101; congress<=118; congress++) {
       for(int session=1; session<=2; session++) {
-        if(!(congress == 118 && session == 2)) { grabSessionData(congress, 
-        		session, saxParser, handler); }
+        if(!(congress == 118 && session == 2)) { grabCongressSessionData(congress, 
+        		session, saxParser, senateHandler); }
       }
+    }
+    
+    HouseVoteMenuHandler houseHandler = new HouseVoteMenuHandler();
+    for(int year=1990; year <= 2023; year++) {
+      grabHouseSessionData(year, saxParser, houseHandler);
     }
   }
 }
