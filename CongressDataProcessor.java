@@ -23,7 +23,7 @@ public class CongressDataProcessor {
   public static boolean loadData() {
     // Create the Files where the data is located
     File actionFile = new File("Program_Data\\All_Actions.csv");
-    File memberFile = new File("ProgramData\\All_Members.csv");
+    File memberFile = new File("Program_Data\\All_Members.csv");
     
     // Try to load and sort member Data
     try {
