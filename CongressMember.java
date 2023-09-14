@@ -1,7 +1,7 @@
 
 public class CongressMember {
   String memberID; // Congress assigned Member ID
-  String[] congressSessions; // List of congressional sessions CongressPerson was/is apart of
+  String[] congressSessions; // List of congressional sessions congressMember was/is apart of
   Character[] parties; // List of party affiliations for each congressional Session
   String[] states; // List of states represented for each congressional Session
   public int length;
@@ -14,9 +14,9 @@ public class CongressMember {
   }
   
   /**
-   * Adds new session data to the congressPerson
+   * Adds new session data to the congressMember
    * 
-   * @param congressSession congressional session the CongressPerson was/is apart of.
+   * @param congressSession congressional session the congressMember was/is apart of.
    *        Formated as Session-Congress; #-###
    * @param party party affiliation during congressional Session
    * @param state state represented for congressional Session 
@@ -47,9 +47,9 @@ public class CongressMember {
   }
 
   /**
-   * If the same CongressPerson is stored in two CongressPerson Objects they can be combined
+   * If the same congressMember is stored in two congressMember Objects they can be combined
    * 
-   * @param otherPerson the other CongressPerson to be combined with
+   * @param otherPerson the other congressMember to be combined with
    * @return true if the combination was successful and false if it wasn't;
    *         IE the people were not equal
    */
@@ -59,10 +59,10 @@ public class CongressMember {
     
     // Loop Through all of the CongressSessions in the otherPerson
     for(int i=0; i<otherPerson.length; i++) {
-      // Determines if the current Session already exists in the current CongressPerson
+      // Determines if the current Session already exists in the current congressMember
       boolean sessionFound = false;
       String otherSession = otherPerson.getCongressSessions()[i];
-      // Loops through all the stored sessions in the current CongressPerson
+      // Loops through all the stored sessions in the current congressMember
       for(int j=0; j<this.length; j++) {
         String session = this.congressSessions[j];
         // If the session is found mark appropriate variable and break the loop
@@ -80,14 +80,14 @@ public class CongressMember {
   }
   
   /**
-   * Two CongressPersons are considered equal if and only if their
+   * Two CongressMembers are considered equal if and only if their
    *     firstName, lastName, and memberID are the same
    */
   @Override
   public boolean equals(Object o) {
  // If the object isn't the same class RETURN FALSE
     if(!(o instanceof CongressMember)) { return false; }
-    // Cast the object to a CongressPerson
+    // Cast the object to a congressMember
     CongressMember member = (CongressMember) o;
     return this.memberID.equals(member.memberID);
   } 

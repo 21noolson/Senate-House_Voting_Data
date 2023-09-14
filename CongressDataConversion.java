@@ -8,7 +8,8 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 public class CongressDataConversion {
-  static final String FileLocation = "Senate_Voting_Data"; 
+  static final String UnprocessedDataLocation = "Data\\DownloadData\\Senate_Voting_Data"; 
+  static final String ProcessedDataLocation = "Data\\ProgramData\\";
   static final String comma = ", ";
   static ArrayList<Member> congressPeople = new ArrayList<Member>();
   
@@ -123,8 +124,8 @@ public class CongressDataConversion {
     
 	public static void main(String[] args) {
 	  // Creates new empty Files where we will store information
-    File actionFile = new File("Program_Data\\All_Actions.csv");
-    File memberFile = new File("Program_Data\\All_Members.csv");
+    File actionFile = new File(ProcessedDataLocation + "All_Actions.csv");
+    File memberFile = new File(ProcessedDataLocation + "All_Members.csv");
     try {
       actionFile.delete();
       memberFile.delete();
@@ -151,7 +152,7 @@ public class CongressDataConversion {
     }
     
 	  // Gets all of the files information must be pulled from
-		File[] allFiles = getFiles(FileLocation);
+		File[] allFiles = getFiles(UnprocessedDataLocation);
 		// Writes the data for each file except a temporary File
 		for(File file: allFiles) {
 		  if(!file.getName().equals("tempFile.xml")) {

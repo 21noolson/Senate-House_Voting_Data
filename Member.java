@@ -3,11 +3,23 @@ public class Member {
   String firstName;
   String lastName;
   CongressMember congress;
+  HouseMember house;
   
   
   public Member(String firstName, String lastName) {
     this.firstName = firstName;
     this.lastName = lastName;
+  }
+  
+  public void addHouseSession(String nameID, String session, Character party, String state) {
+    HouseMember tempMember = new HouseMember(nameID);
+    tempMember.addSession(session, party, state);
+    if(house == null) {
+      house = tempMember;
+    }
+    else if(!house.combineMember(tempMember)) {
+      throw new RuntimeException("The given nameID does not match the nameID previously recorded");
+    }
   }
   
   public void addCongressSession(String memberID, String session, Character party, String state) {
