@@ -1,194 +1,200 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Scanner;
 
-
 public class DataProcessor {
+  // File Locations
+  final static String ProgramDataLocation = "Data\\ProgramData\\";
+  final static File senateFile = new File(ProgramDataLocation + "All_Senate_Actions.csv");
+  final static File houseFile = new File(ProgramDataLocation + "All_House_Actions.csv");
+  final static File memberFile = new File(ProgramDataLocation + "All_Members.csv");
   
   // HashTable containing all Members using their memberID as the hashtable key
-  static Hashtable<String, Member> MemberID;
+  static Hashtable<String, Member> senateMemberID;
+  static Hashtable<String, Member> houseNameID;
   // Arraylist containing all Congressional Actions 
-  static ArrayList<ArrayList<CongressAction>> congressActions;
+  static ArrayList<SenateAction> senateActions;
+  static ArrayList<HouseAction> houseActions;
   // Arraylists containing all Members sorted by first and last name respectively
   static ArrayList<Member> MemberFirstName;
   static ArrayList<Member> MemberLastName;
   
-  final static String ProgramDataLocation = "Data\\ProgramData\\";
-  
+
   /**
-   * Loads data located in All_Actions.csv and All_Members.csv
+   * Loads all the data
    * 
+   * @throws FileNotFoundException
    * @return True if all data was loaded and False otherwise
    */
-  public static boolean loadData() {
-    // Create the Files where the data is located
-    File actionFile = new File(ProgramDataLocation + "All_Actions.csv");
-    File memberFile = new File(ProgramDataLocation + "All_Members.csv");
-    
-    // Try to load and sort member Data
-    try {
-      ArrayList<Member> Members = memberLoad(memberFile);
-      memberDataSort(Members); // Sort and add the memberData
-    }
-    // If a FileNotFoundException is throw print the stacktrace and return false
-    catch(FileNotFoundException e) {
-      System.out.println("Failure to load File");
-      e.printStackTrace();
-      return false;
-    }
-    
-    // Try to load action Data
-    try {
-      congressActions = actionLoad(actionFile);
-    }
-    // If a FileNotFoundException is throw print the stacktrace and return false
-    catch(FileNotFoundException e) {
-      System.out.println("Failure to load File");
-      e.printStackTrace();
-      return false;
-    }
-    
-    
-    return true;
+  public static void loadData() throws FileNotFoundException {
+    loadMemberData();
+    loadSenateData();
+    loadHouseData();
+    dataSort();
   }
   
-  /**
-   * Takes an ArrayList of CongressPerson's and adds the data to the first and 
-   *      last name sorted ArrayLists and the hashtable
-   * @param MemberRandom Arraylist of congressPerson's being added
-   */
-  private static void memberDataSort(ArrayList<Member> MemberRandom) {
-    // Add all members to the hashtable
-    for(Member member: MemberRandom) {
-      MemberID.put(member.getCongress().getMemberID(), member);
-    }
+  @SuppressWarnings("unchecked")
+  private static void dataSort() {
+    // Grabs list of house and senate members
+    Collection<Member> senateMembers = senateMemberID.values();
+    Collection<Member> houseMembers = houseNameID.values();
     
-    // Copy the array to the first and last name arrays
-    MemberFirstName.addAll(MemberRandom);
-    MemberLastName.addAll(MemberRandom);
-    // Sort the arrays
-    MemberFirstName.sort(new firstNameCompartor<Member>());
-    MemberLastName.sort(new lastNameCompartor<Member>()); 
-  }
-  
-  /**
-   * Loads all of the CongressActions
-   * 
-   * @param file
-   * @return
-   * @throws FileNotFoundException
-   */
-  private static ArrayList<ArrayList<CongressAction>> actionLoad(File file) throws FileNotFoundException {
-    // Scanner for actionFile and 'line' to hold the current line of the file
-    Scanner scanner = new Scanner(file);
-    String line;
-    
-    // List to hold all actions
-    ArrayList<ArrayList<CongressAction>> allActions = new ArrayList<ArrayList<CongressAction>>();
-    ArrayList<CongressAction> actions = new ArrayList<CongressAction>();
-    
-    while(scanner.hasNextLine()) {
-      // Grab and split the line into sections
-      line = scanner.nextLine();
-      String[] actionInfo = line.split(",");
-      
-      // Grabs the congressSession and the last congressSession
-      String congressSession = actionInfo[3]+actionInfo[4];
-      CongressAction lastAction = actions.get(actions.size());
-      String lastCongressSession = String.valueOf(lastAction.getCongress()) + String.valueOf(lastAction.getSession());
-      if(!congressSession.equals(lastCongressSession)) {
-        allActions.add(actions);
-        actions = new ArrayList<CongressAction>();
-      }
-      actions.add(grabActionLine(actionInfo));
-    }
-    scanner.close();
-    return allActions;
-  }
-  
-  /**
-   * Given a String[] of a line representing an action and creates a CongressAction
-   * 
-   * @param actionInfo String[] representing each item in a line holding CongressActions
-   * @return  CongressAction created with the given actionInfo
-   */
-  private static CongressAction grabActionLine(String[] actionInfo) {
-    // Grab data about the action
-    int yayVotes = Integer.valueOf(actionInfo[0]);
-    int nayVotes = Integer.valueOf(actionInfo[1]);
-    int absent = Integer.valueOf(actionInfo[2]);
-    int congress = Integer.valueOf(actionInfo[3]);
-    int session = Integer.valueOf(actionInfo[4]);
-    int year = Integer.valueOf(actionInfo[5]);
-    String date = actionInfo[6];
-    String voteQuestion = actionInfo[7];
-    
-    // Create ArrayList's for memberID and votes and add the related data
-    ArrayList<String> memberID = new ArrayList<String>();
-    ArrayList<Boolean> vote = new ArrayList<Boolean>();
-    for(int i=8; i<actionInfo.length; i++) {
-      if(i%2==0) {
-        memberID.add(actionInfo[i]);
+    // Adds senate Members to list of all Members.
+    // Adds or combines members from house list.
+    ArrayList<Member> allMembers = new ArrayList<Member>(senateMembers);
+    for(Member member: houseMembers) {
+      int memberLocation = allMembers.indexOf(member);
+      if(memberLocation == -1) {
+        allMembers.add(member);
       }
       else {
-        vote.add(Boolean.valueOf(actionInfo[i]));
+        allMembers.get(memberLocation).combineMember(member);
       }
     }
-    // Grab the lists of members and votes
-    Member[] members = new Member[memberID.size()];
-    Boolean[] votes = new Boolean[vote.size()];
-    for(int i=0; i<memberID.size(); i++) {
-      members[i] = MemberID.get(memberID.get(i));
-      votes[i] = vote.get(i); 
-    }
     
-    // Return the new created action
-    return new CongressAction(yayVotes, nayVotes, absent, congress, session, year,
-                date, voteQuestion, members, votes);
+    // Sort Member list
+    allMembers.sort(new firstNameCompartor());
+    MemberFirstName = (ArrayList<Member>) allMembers.clone();
+    allMembers.sort(new lastNameCompartor());
+    MemberLastName = (ArrayList<Member>) allMembers.clone();
   }
   
-  private static ArrayList<Member> memberLoad(File file) throws FileNotFoundException {
-    // Scanner for memberFile and line to hold the current line of the file
-    Scanner scanner = new Scanner(file);
-    String line;
+  /**
+   * Loads data from memberFile
+   * 
+   * @throws FileNotFoundException
+   */
+  private static void loadMemberData() throws FileNotFoundException {
+    // Split the file by line
+    Scanner memberScanner  = new Scanner(memberFile);
+    memberScanner.useDelimiter("\n");
     
-    // List to hold the congressPeople
-    ArrayList<Member> members = new ArrayList<Member>();
+    while(memberScanner.hasNext()) {
+      // Grab line and split it by commas
+      String nextLine = memberScanner.next();
+      String[] memberData = nextLine.split(",");
+      
+      // Add Member Name
+      Member member = new Member(memberData[0], memberData[1]);
+      
+      // Adds all House Data then Name ID
+      int i;
+      for(i = 2; !memberData[i].equals("&&"); i+=3) {
+        member.addHouseSession(memberData[i], memberData[i+1].charAt(0), memberData[i+2]);
+      }
+      String nameID = memberData[i+1];
+      if(nameID != null) {
+        member.setNameID(nameID);
+        houseNameID.put(nameID, member);
+      }
+      
+      // Adds all Senate Data then Member ID
+      for(i = i+2; !memberData[i].equals("&&"); i+=3) {
+        member.addSenateSession(memberData[i], memberData[i+1].charAt(0), memberData[i+2]);
+      }
+      String memberID = memberData[i+1];
+      if(memberID != null) {
+        member.setNameID(memberID);
+        senateMemberID.put(memberID, member);
+      }
+    }
+    memberScanner.close();
+  }
+  
+  /**
+   * Loads Data from senateFile
+   * 
+   * @throws FileNotFoundException
+   */
+  private static void loadSenateData() throws FileNotFoundException {
+    // Split the file by line
+    Scanner senateScanner  = new Scanner(senateFile);
+    senateScanner.useDelimiter("\n");
     
-    while(scanner.hasNextLine()) {
-      // Gets the next line and splits it by commas
-      line = scanner.nextLine();
-      String[] memberInfo = line.split(",");
+    while(senateScanner.hasNext()) {
+      // Grab line and split it by commas
+      String nextLine = senateScanner.next();
+      String[] actionData = nextLine.split(",");
       
-      // number of Sessions member served on
-      int numSess = (memberInfo.length-3)/3;
-      // Arrays holding session, party, and state data
-      String[] memberSessions = new String[numSess];
-      Character[] memberParties = new Character[numSess];
-      String[] memberStates = new String[numSess];
+      // Creates arrays to hold members and votes
+      int numMembers = (actionData.length-8)/2;
+      Member[] members = new Member[numMembers];
+      Boolean[] votes = new Boolean[numMembers];
       
-      // Loop through the line data and sort session, party, and state 
-      //    data into their appropriate array
-      for(int i=3; i<memberInfo.length; i++) {
-        if(i < numSess+3) {
-          memberSessions[i-3] = memberInfo[i];
+      // Grabs all the members and votes
+      for(int i=8; i<numMembers; i+=2) {
+        members[(i-8)/2] = senateMemberID.get(actionData[i]);
+        String vote = actionData[i+1];
+        if(vote.equals("YAY")) {
+          votes[((i-8)/2)+1] = true;
         }
-        else if(i < 2*numSess+3) {
-          memberParties[i-3-numSess] = memberInfo[i].charAt(0);
+        else if(vote.equals("NAY")) {
+          votes[((i-8)/2)+1] = false;
         }
-        else {
-          memberStates[i-3-2*numSess] = memberInfo[i];
+        // Prints a message if the vote data is corrupt
+        else if(!vote.equals("NULL")) {
+          System.out.println("Failure when loading member ID:\t" + actionData[i]);
+          System.out.println("Vote Entry Returned:\t" + actionData[i+1]);
         }
       }
-      Member member = new Member(memberInfo[0], memberInfo[1]);
-      for(int i=0; i<memberSessions.length; i++)
-      member.addCongressSession(memberInfo[2], memberSessions[i], memberParties[i], memberStates[i]);
-      members.add(member);
+      
+      // Adds the action to senateActions
+      SenateAction action = new SenateAction(Integer.getInteger(actionData[0]), Integer.getInteger(actionData[1]),
+          Integer.getInteger(actionData[2]), Integer.getInteger(actionData[3]), Integer.getInteger(actionData[4]),
+          Integer.getInteger(actionData[5]), actionData[6], actionData[7], members, votes);
+      senateActions.add(action);
     }
-    scanner.close();
-    return members;
+    senateScanner.close();
   }
+  
+  /**
+   * Loads Data from houseFile
+   * 
+   * @throws FileNotFoundException
+   */
+  private static void loadHouseData() throws FileNotFoundException {
+    // Split the file by line
+    Scanner senateScanner  = new Scanner(houseFile);
+    senateScanner.useDelimiter("\n");
+    
+    while(senateScanner.hasNext()) {
+      // Grab line and split it by commas
+      String nextLine = senateScanner.next();
+      String[] actionData = nextLine.split(",");
+      
+      // Creates arrays to hold members and votes
+      int numMembers = (actionData.length-6)/2;
+      Member[] members = new Member[numMembers];
+      Boolean[] votes = new Boolean[numMembers];
+      
+      // Grabs all the members and votes
+      for(int i=6; i<numMembers; i+=2) {
+        members[(i-6)/2] = houseNameID.get(actionData[i]);
+        String vote = actionData[i+1];
+        if(vote.equals("YAY")) {
+          votes[((i-6)/2)+1] = true;
+        }
+        else if(vote.equals("NAY")) {
+          votes[((i-6)/2)+1] = false;
+        }
+        // Prints a message if the vote data is corrupt
+        else if(!vote.equals("NULL")) {
+          System.out.println("Failure when loading member ID:\t" + actionData[i]);
+          System.out.println("Vote Entry Returned:\t" + actionData[i+1]);
+        }
+      }
+      
+      // Adds the action to houseActions
+      HouseAction action = new HouseAction(Integer.getInteger(actionData[0]), Integer.getInteger(actionData[1]),
+          Integer.getInteger(actionData[2]), Integer.getInteger(actionData[3]), actionData[4], actionData[5],
+          members, votes);
+      houseActions.add(action);
+    }
+    senateScanner.close();
+  }
+
   
 }

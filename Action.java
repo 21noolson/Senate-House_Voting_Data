@@ -1,14 +1,31 @@
 
+/**
+ * Represents a political action
+ * 
+ * @author NoahOlson
+ * @param <T> Type of voters voting on political action
+ */
 public class Action<T> {
   private final int yayVotes;   // Number of yay Votes
   private final int nayVotes;   // Number of nay Votes
-  private final int absent;     // Number of members absent from vote
+  private final int absent;     // Number of voters absent from vote
   private final int year;
   private final String date;
-  private final String voteQuestion;      // What is being voted on
-  private final T[] voters;  // Congress people voting on this action
-  private final Boolean[] votes;          // Votes by the list of Congress people.
+  private final String voteQuestion;  // What is being voted on
+  private final T[] voters;           // List of voters voting on this action
+  private final Boolean[] votes;      // Votes by the list of Congress people.
+                                      // true for yay, false for nay, and null for absent
   
+  /**
+   * @param yayVotes number of yay Votes
+   * @param nayVotes number of nay votes
+   * @param absent number of voters absent
+   * @param year
+   * @param date
+   * @param voteQuestion question being voted on
+   * @param voters
+   * @param votes List of voters. true for yay, false for nay, and null for absent
+   */
   public Action(int yayVotes, int nayVotes, int absent, int year, String date, String voteQuestion,
       T[] voters, Boolean[] votes) {
     this.yayVotes = yayVotes;

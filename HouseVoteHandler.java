@@ -3,7 +3,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class HouseVoteHandler extends DefaultHandler {
-  
+  private HouseAction action;
   public void startDocument() {}
   
   public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
@@ -27,5 +27,8 @@ public class HouseVoteHandler extends DefaultHandler {
   
   public void endDocument() {}
   
+  public HouseAction getAction() {
+    return action;
+  }
   
 }
