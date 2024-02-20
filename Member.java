@@ -20,6 +20,16 @@ public class Member {
   public Member(String firstName, String lastName) {
     this.firstName = firstName;
     this.lastName = lastName;
+    
+    this.nameID = "";
+    this.houseSessions = new String[0];
+    this.houseParties = new Character[0];
+    this.houseStates = new String[0];
+    
+    this.memberID = "";
+    this.senateSessions = new String[0];
+    this.senateParties = new Character[0];
+    this.senateStates = new String[0];
   }
   
   public void setNameID(String nameID) {
@@ -33,7 +43,6 @@ public class Member {
   /**
    * Adds a house session
    * 
-   * @param nameID House assigned nameID
    * @param session the HouseMember was/is apart of. Formated as Session-Congress; #-###
    * @param party affiliation during house Session
    * @param state represented for house Session 
@@ -75,7 +84,6 @@ public class Member {
   /**
    * Adds a congressional session
    * 
-   * @param memberID Congress assigned Member ID
    * @param session congressMember was/is apart of. Formated as Session-Congress; #-###
    * @param party affiliation during congressional Session
    * @param state represented for congressional Session 

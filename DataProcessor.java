@@ -3,6 +3,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Scanner;
 
 public class DataProcessor {
@@ -13,8 +14,8 @@ public class DataProcessor {
   final static File memberFile = new File(ProgramDataLocation + "All_Members.csv");
   
   // HashTable containing all Members using their memberID as the hashtable key
-  static Hashtable<String, Member> senateMemberID;
-  static Hashtable<String, Member> houseNameID;
+  static Hashtable<String, Member> senateMemberID = new Hashtable<String, Member>();
+  static Hashtable<String, Member> houseNameID = new Hashtable<String, Member>();
   // Arraylist containing all Congressional Actions 
   static ArrayList<SenateAction> senateActions;
   static ArrayList<HouseAction> houseActions;
@@ -22,12 +23,58 @@ public class DataProcessor {
   static ArrayList<Member> MemberFirstName;
   static ArrayList<Member> MemberLastName;
   
+  
+  
+  /**
+   * Gets all Members
+   * 
+   * @return A list of all Members
+   */
+  public static Member[] getMembers() {
+    System.out.println("SenateMemberID size:\t" + senateMemberID.size());
+    System.out.println("HouseNameID size:\t" + houseNameID.size());
+    System.out.println("MemberFirstName size:\t" + MemberFirstName.size());
+    System.out.println("MemberLastName size:\t" + MemberLastName.size());
+    
+    Member[] returnList = new Member[MemberFirstName.size()];
+    System.out.println("GetMembers memberSize:\t" + MemberFirstName.size());
+    for(int i=0; i<MemberFirstName.size(); i++) {
+      returnList[i] = MemberFirstName.get(i);
+      System.out.println("Member Name:\t" + MemberFirstName.get(i).getName());
+    }
+    return returnList;
+  }
+  
+  /**
+   * Gets all Members that contain the name searched for
+   * 
+   * @param name The name of to search for
+   * @return A list of all Members with matching name
+   */
+  public static Member[] getMembersByName(String name) {
+    // List holds members with matching names but isn't guaranteed to be full
+    Member[] partialFillList = new Member[MemberFirstName.size()];
+    int size = 0;
+    // Fills the partialFill List
+    for(int i=0; i<MemberFirstName.size(); i++) {
+      if(MemberFirstName.get(i).getName().contains(name)) {
+        partialFillList[size] = MemberFirstName.get(i);
+        size++;
+      }
+    }
+    // returnList holds the members with matching names and is a full list
+    Member[] returnList = new Member[size];
+    // Fills returnList
+    for(int i=0; i<size; i++) {
+      returnList[i] = partialFillList[i];
+    }
+    return returnList;
+  }
 
   /**
    * Loads all the data
    * 
    * @throws FileNotFoundException
-   * @return True if all data was loaded and False otherwise
    */
   public static void loadData() throws FileNotFoundException {
     loadMemberData();

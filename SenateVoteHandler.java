@@ -27,11 +27,17 @@ public class SenateVoteHandler extends DefaultHandler {
   int year;
   String date;
   String voteQuestion;
-  int votesCounted = 0;     
-  Member[] voters = new Member[100];  
-  Boolean[] votes = new Boolean[100]; // True for yay, False for nay, and Null for Not Voting
+  int votesCounted;     
+  Member[] voters;  
+  Boolean[] votes; // True for yay, False for nay, and Null for Not Voting
   //Action to be created 
   private SenateAction action;
+  
+  public void startDocument() {
+    votesCounted = 0;
+    voters = new Member[100];  
+    votes = new Boolean[100];
+  }
 
   /**
    * Grabs the name of the XML tag when an element is started
@@ -59,7 +65,6 @@ public class SenateVoteHandler extends DefaultHandler {
       case "congress_year": 
         this.year = Integer.valueOf(data);
         this.congressSession = this.session + "-" + this.congress;
-        //System.out.println(this.congressSession + "\tat count");
         break;
       case "vote_number":  this.voteNumber = Integer.valueOf(data);
         break;

@@ -1,7 +1,7 @@
 import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.net.MalformedURLException;
 
 import javax.xml.parsers.SAXParser;  
@@ -20,7 +20,7 @@ public class Data {
   static final String comma = ",";
   
   //First and Last Congress and House Year
-  private static final int firstCongress = 101;
+  private static final int firstCongress = 105;
   private static final int lastCongress = 118;
   private static final int firstHouseYear = 1990;
   private static final int lastHouseYear = 2023;
@@ -51,7 +51,11 @@ public class Data {
   // ArrayList to hold processed members
   static ArrayList<Member> members = new ArrayList<Member>();
   
-  
+  /**
+   * Downloads all data and then processes it into a useful format
+   * 
+   * @param args
+   */
   public static void main(String[] args) {
     intialize();
     downloadAllCongressData();
@@ -117,7 +121,7 @@ public class Data {
    * 
    * @return True if the data was processed and False otherwise
    */
-  public static boolean processMemberData() {
+  public static void processMemberData() {
     for(Member member:members) {
       try {
         // Adds first and last name to line
@@ -151,11 +155,8 @@ public class Data {
         dataLine = dataLine + "\n";
         memberWriter.append(dataLine);
       }
-      catch (IOException e) {
-        return false;
-      }
+      catch (IOException e) {}
     }
-    return true;
   }
   
   /**
@@ -163,18 +164,16 @@ public class Data {
    * 
    * @return true if the data is successfully processed and false otherwise
    */
-  public static boolean processCongressData() {
+  public static void processCongressData() {
     // Gets all of the files information must be pulled from
     File[] allFiles = getFiles(UnprocessedDataLocation+"Senate_Voting_Data");
     // Writes the data for each file except a temporary File
+    System.out.println("Congress Files Found:\t" + allFiles.length);
     for(File file: allFiles) {
       if(!file.getName().equals("tempFile.xml")) {
-        if(!writeCongressData(file)) {
-          return false;
-        }
+        writeCongressData(file);
       }
     }
-    return true;
   }
   
   /**
@@ -183,29 +182,26 @@ public class Data {
    * @param dataFile 
    * @return true if the data is successfully written and false otherwise
    */
-  private static boolean writeCongressData(File dataFile) {
+  private static void writeCongressData(File dataFile) {
    // Parse the given dataFile and return false if the parser fails
    try {
      saxParser.parse(dataFile, senateHandler);
    }
    catch(Exception e) {
-     return false;
+     e.printStackTrace();
    }
+   System.out.println("Write Congress Data Entrance Check");
    // Writes the Data to the senateActionFile
    SenateAction action = senateHandler.getAction();
-   if(!writeCongressActionData(action)) {
-     return false;
-   }
+   writeCongressActionData(action);
    // Gets the voter and vote data
    Member[] voters = action.getVoters();
    Boolean[] votes = action.getVotes();
    // For each voter adds the voter and vote information
+   System.out.println("Congress Voters Found:\t" + voters.length);
    for(int i=0; i<voters.length; i++) {
-     if(!writeCongressMemberData(voters[i], votes[i])) {
-       return false;
-     }
+     writeCongressMemberData(voters[i], votes[i]);
    }
-   return true;
  }
   
   /**
@@ -214,7 +210,7 @@ public class Data {
    * @param action is the action to be recorded
    * @return true if the data was written and false if an exception occurred
    */
-  private static boolean writeCongressActionData(SenateAction action) {
+  private static void writeCongressActionData(SenateAction action) {
     try {
       String dataLine = action.getYayVotes() + comma;
       dataLine += action.getNayVotes() + comma;
@@ -225,11 +221,8 @@ public class Data {
       dataLine += action.getDate() + comma;
       dataLine += action.getVoteQuestion() + comma;
       senateActionWriter.append(dataLine);
-      return true;
     }
-    catch (IOException e) {
-      return false;
-    }
+    catch (IOException e) {}
   }
   
   /**
@@ -239,15 +232,13 @@ public class Data {
    * @param vote 
    * @return true if the data was written and false otherwise
    */
-  private static boolean writeCongressMemberData(Member voter, Boolean vote) {
+  private static void writeCongressMemberData(Member voter, Boolean vote) {
     // Writes the Voter Data to the senateActionFile and returns false if an IOException is thrown
     String dataLine = voter.getMemberID() + comma + vote + "\n";
     try {
       senateActionWriter.append(dataLine);
     }
-    catch(IOException e) {
-      return false;
-    }
+    catch(IOException e) {}
     // Add Voter Data to members
     int location = members.indexOf(voter);
     if(location == -1) {
@@ -256,8 +247,6 @@ public class Data {
     else {
       members.get(location).combineMember(voter);
     }
-    // Return true after the memberID and vote is written
-    return true;
   }
   
   /**
@@ -265,16 +254,13 @@ public class Data {
    * 
    * @return true if the data is successfully processed and false otherwise
    */
-  public static boolean processHouseData() {
+  public static void processHouseData() {
     // Gets all of the files information must be pulled from
     File[] allFiles = getFiles(UnprocessedDataLocation+"House_Voting_Data");
     // Writes the data for each file except a temporary File
     for(File file: allFiles) {
-      if(!writeHouseData(file)) {
-        return false;
-      }
+      writeHouseData(file);
     }
-    return true;
   }
   
   /**
@@ -283,37 +269,28 @@ public class Data {
    * @param dataFile
    * @return true if the data is successfully written and false otherwise
    */
-  private static boolean writeHouseData(File dataFile){
+  private static void writeHouseData(File dataFile){
     // Parse the given dataFile and return false if the parser fails
     try {
       saxParser.parse(dataFile, houseHandler);
     }
     // Print Exception information if parser Fails initialization and returns
-    catch(Exception e) {
-      return false;
-    }
+    catch(Exception e) {}
     // Writes the Data to the ctionFile
     HouseAction action = houseHandler.getAction();
-    if(!writeHouseActionData(action)) {
-      return false;
-    }
+    writeHouseActionData(action);
     // Gets the voter and vote data
     Member[] voters = action.getVoters();
     Boolean[] votes = action.getVotes();
     // For each voter adds the voter and vote information
     for(int i=0; i<voters.length; i++) {
-      if(!writeHouseMemberData(voters[i], votes[i])) {
-        return false;
-      }
+      writeHouseMemberData(voters[i], votes[i]);
     }
     // Moves to the next line of the action file
     try {
       senateActionWriter.append("\n");
     }
-    catch(IOException e) {
-      return false;
-    }
-    return true;
+    catch(IOException e) {}
   }
   
   /**
@@ -345,15 +322,13 @@ public class Data {
    * @param vote 
    * @return true if the data was written and false otherwise
    */
-  private static boolean writeHouseMemberData(Member voter, Boolean vote) {
+  private static void writeHouseMemberData(Member voter, Boolean vote) {
     // Writes the Voter Data to the senateActionFile and returns false if an IOException is thrown
     String dataLine = voter.getNameID() + comma + vote + comma;
     try {
       houseActionWriter.append(dataLine);
     }
-    catch(IOException e) {
-      return false;
-    }
+    catch(IOException e) {}
     // Add Voter Data to members
     int location = members.indexOf(voter);
     if(location == -1) {
@@ -362,8 +337,6 @@ public class Data {
     else {
       members.get(location).combineMember(voter);
     }
-    // Return true after the memberID and vote is written
-    return true;
   }
   
   /**
@@ -371,8 +344,8 @@ public class Data {
    * 
    * @return true if all data successfully downloaded otherwise returns false
    */
-  public static boolean downloadAllHouseData() {
-    return downloadHouseData(firstHouseYear, lastHouseYear);
+  public static void downloadAllHouseData() {
+    downloadHouseData(firstHouseYear, lastHouseYear);
   }
   
   /**
@@ -381,8 +354,8 @@ public class Data {
    * @param startYear first year to start downloading data
    * @return true if all data successfully downloaded otherwise returns false
    */
-  public static boolean downloadHouseData(int startYear) {
-    return downloadHouseData(startYear, lastHouseYear);
+  public static void downloadHouseData(int startYear) {
+    downloadHouseData(startYear, lastHouseYear);
   }
   
   /**
@@ -392,17 +365,14 @@ public class Data {
    * @param endYear last year to download data
    * @return true if all data successfully downloaded otherwise returns false
    */
-  public static boolean downloadHouseData(int startYear, int endYear) {
+  public static void downloadHouseData(int startYear, int endYear) {
     if(startYear < firstHouseYear || endYear > lastHouseYear || endYear < startYear) {
       throw new IndexOutOfBoundsException();
     }
     // Download all Years of house data and return false if any downloads fail
     for(int i=startYear; i<=endYear; i++) {
-      if(!downloadHouseYearData(i)) {
-        return false;
-      }
+      downloadHouseYearData(i);
     }
-    return true; // Return true if all downloads are successful
   }
   
   /**
@@ -411,7 +381,7 @@ public class Data {
    * @param year to download House Data
    * @return true if all data successfully downloaded otherwise returns false
    */
-  private static boolean downloadHouseYearData(int year) {
+  private static void downloadHouseYearData(int year) {
     int rollCallNum = 0;
     String webPage;
     String fileLocation;
@@ -425,7 +395,6 @@ public class Data {
     }
     // DownloadWebPage and move to the next if successful
     while(DownloadWebPage(webPage, fileLocation));
-    return true; // Return TRUE when function concludes
   }
   
   /**
@@ -433,8 +402,8 @@ public class Data {
    * 
    * @return true if all data successfully downloaded otherwise returns false
    */
-  public static boolean downloadAllCongressData() {
-   return downloadCongressData(firstCongress, lastCongress);
+  public static void downloadAllCongressData() {
+   downloadCongressData(firstCongress, lastCongress);
   }
   
   /**
@@ -443,8 +412,8 @@ public class Data {
    * @param startCongress the Congress number to begin the Download
    * @return true if all data successfully downloaded otherwise returns false
    */
-  public static boolean downloadCongressData(int startCongress) {
-     return downloadCongressData(startCongress, lastCongress);
+  public static void downloadCongressData(int startCongress) {
+     downloadCongressData(startCongress, lastCongress);
   }
   
   /**
@@ -454,19 +423,17 @@ public class Data {
    * @param endCongress the congress number to end with
    * @return true if all data successfully downloaded otherwise returns false
    */
-  public static boolean downloadCongressData(int startCongress, int endCongress) {
+  public static void downloadCongressData(int startCongress, int endCongress) {
+    // Checks that the bounds provide are valid
     if(startCongress < firstCongress  || endCongress > lastCongress || startCongress > endCongress) {
       throw new IndexOutOfBoundsException();
     }
     // Loops through all current Congressional session which are on the senates website
     for(int congress=startCongress; congress<=endCongress; congress++) {
       for(int session=1; session<=2; session++) {
-        if(!(congress == lastCongress && session == 2) && !downloadCongressSessionData(congress, session)) { 
-          return false;
-        }
+        downloadCongressSessionData(congress, session);
       }
     }
-    return true; // Returns true after all data successfully downloads
   }
   
   /**
@@ -476,7 +443,7 @@ public class Data {
    * @param session session number to be downloaded
    * @return true if all data successfully downloaded otherwise returns false
    */
-  private static boolean downloadCongressSessionData(int congress, int session) {
+  private static void downloadCongressSessionData(int congress, int session) {
     // Creates String to the senate menu page for the given congress and session
     String sessionsPage = "https://www.senate.gov/legislative/LIS/roll_call_lists/vote_menu_";
     sessionsPage += congress + "_" + session +".xml";
@@ -488,9 +455,7 @@ public class Data {
     // Attempts to download and parse voteMenu page and determine items otherwise prints exception and returns false
     int items = 0;
     try {
-      if(!DownloadWebPage(sessionsPage, votePageFileLocation)) {
-        return false;
-      }
+      DownloadWebPage(sessionsPage, votePageFileLocation);
       saxParser.parse(voteMenu, senateMenuHandler);
       items = senateMenuHandler.getVotes();
     } 
@@ -499,10 +464,9 @@ public class Data {
       System.out.print("Congress:\t" + congress);
       System.out.println("\tSession:\t" + session);
       e.printStackTrace();
-      return false;
     }
     // Downloads all data from the given congress and session
-    return downloadCongressSessionData(congress, session, items);
+    downloadCongressSessionData(congress, session, items);
   }
   
   /**
@@ -513,10 +477,10 @@ public class Data {
    * @param items Number of items to download
    * @return true if all data successfully downloaded otherwise returns false
    */
-  private static boolean downloadCongressSessionData(int congress, int session, int items) {
+  private static void downloadCongressSessionData(int congress, int session, int items) {
     // Creates a template link to where vote data will be downloaded from
     String votePage = "https://www.senate.gov/legislative/LIS/roll_call_votes/vote";
-    votePage += congress + session + "/vote_" + congress + "_" + session + "_";
+    votePage += congress + Integer.toString(session) + "/vote_" + congress + "_" + session + "_";
     
     // Uses items to loop through and attempt to download all vote pages
     for(int action=1; action<=items; action++) {
@@ -526,9 +490,10 @@ public class Data {
       // Attempts to download the vote page and returns false if a download fails
       String currentVotePage = votePage + actionNumber + ".xml";
       String fileName = SenateFileLocation + "Senate_" + congress + "_" + session + "_" + action + ".xml";
-      if(!DownloadWebPage(currentVotePage, fileName)) {return false;}
+      if(!DownloadWebPage(currentVotePage, fileName)) {
+        System.out.println(currentVotePage + "\t Failed to download");
+      }
     }
-    return true; // Return true after all data has been downloading
   }
   
   /**
@@ -553,51 +518,65 @@ public class Data {
    * @return true if the webPage was successfully downloaded and false otherwise
    */
   private static boolean DownloadWebPage(String webPage, String fileName, int attempts) {
-    // Initializes URL and writer
-    URL url;
-    BufferedWriter writer;
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    Future<Boolean> future = executor.submit(() -> {
+      // Initialize URL and writer
+      URL url;
+      BufferedWriter writer;
+      try {
+          url = new URL(webPage);
+          writer = new BufferedWriter(new FileWriter(fileName));
+          System.out.println("File Established:\t\t" + fileName);
+      } catch (MalformedURLException mue) {
+          System.out.println("Malformed URL Exception raised:\t" + webPage);
+          return false;
+      } catch (IOException e) {
+          e.printStackTrace();
+          return false;
+      }
+
+      // Tries to download the file the number of times specified
+      for (int i = 0; i < attempts; i++) {
+        try {
+          // Initialize reader
+          BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+          System.out.println("URL Established:\t\t" + webPage);
+          // Write information from URL
+          String line;
+          while ((line = reader.readLine()) != null) {
+            writer.write(line);
+          }
+          // Close reader and writer and return true;
+          reader.close();
+          writer.close();
+          return true;
+        } 
+        catch (FileNotFoundException e) {
+            return false;
+        } 
+        catch (Exception e) {
+          try {
+            e.printStackTrace();
+            TimeUnit.SECONDS.sleep(60);
+          } 
+          catch (Exception e1) {}
+        }
+      }
+      // Closes writer, prints failure message and returns false if the file Failed to download
+      try { writer.close(); }
+      catch (Exception e) {}
+      System.out.println("Failed to download file:\t" + fileName);
+      return false;
+    });
+    
+    boolean result;
     try {
-      url = new URL(webPage);
-      writer = new BufferedWriter(new FileWriter(fileName));
-    } 
-    catch (MalformedURLException mue) {
-      System.out.println("Malformed URL Exception raised:\t" + webPage);
-      return false;
-    }
-    catch(IOException e) {
-      e.printStackTrace();
-      return false;
+      result = future.get(); // Get the result of the download operation
+    } catch (Exception e) {
+      result = false; // If an exception occurs, treat it as a failure
     }
     
-    // Tries to download the file the number of times specified
-    for(int i=0; i<attempts; i++) {
-      try {
-        // Initialize  reader
-        BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
-        // Write information from URL
-        String line;
-        while ((line = reader.readLine()) != null) {
-          writer.write(line);
-        }
-        // Close reader and writer and return true;
-        reader.close();
-        writer.close();
-        return true;
-      }
-      catch(FileNotFoundException e) {
-        return false;
-      }
-      catch(Exception e) {
-        try {
-          TimeUnit.SECONDS.sleep(60);
-        } catch (Exception e1) {}
-      }
-    }
-    // Closes writer, prints failure message and returns false if the file Failed to download
-    try {
-      writer.close();
-    } catch(Exception e) {}
-    System.out.println("Failed to download file:\t" + fileName);
-    return false;
+    executor.shutdown(); // Shutdown the executor service
+    return result;
   }
 }
